@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Nail Blast — Bouncing Ball vs Spikes 💣</title>
+    <meta name="description" content="Control the bouncing ball, dodge sharp steel nails, collect glowing gems, and don't touch the spikes! Featuring epic explosive blast physics and 2-player mode.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=JetBrains+Mono:wght@600;800&family=Outfit:wght@500;700;800;900&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="bouncing-ball.css">
+</head>
+<body>
+    <!-- Background Backdrop & Glow -->
+    <div class="game-backdrop"></div>
+    <div class="game-vignette"></div>
+
+    <div class="app-layout">
+        <!-- Top Arcade Header -->
+        <header class="game-header">
+            <div class="brand">
+                <span class="brand-emoji">⚡</span>
+                <div class="brand-titles">
+                    <h1>NAIL BLAST</h1>
+                    <span class="sub-title">BOUNCING BALL VS SPIKES • 1 & 2 PLAYER</span>
+                </div>
+            </div>
+
+            <!-- Quick Action Buttons -->
+            <div class="header-actions">
+                <button id="btn-sound" class="icon-action-btn" title="Toggle Sound">
+                    <span id="sound-icon">🔊</span>
+                </button>
+                <button id="btn-rules" class="icon-action-btn" title="How to Play">
+                    <span>❓</span>
+                </button>
+                <button id="btn-restart-top" class="restart-pill-btn">
+                    <span>🔄 Restart</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Mode & Difficulty Selection Bar -->
+        <section class="game-settings-bar">
+            <div class="setting-pill">
+                <label for="mode-select">Game Mode</label>
+                <select id="mode-select" class="arcade-select">
+                    <option value="classic" selected>🎯 Classic Wall Spikes</option>
+                    <option value="pvp">👥 2 Players (Couch Duel)</option>
+                    <option value="rain">🌧️ Nail Rain (Falling Spikes)</option>
+                    <option value="twin">🍒 Twin Balls (Dual Control)</option>
+                </select>
+            </div>
+
+            <div class="setting-pill">
+                <label for="skin-select">Ball Skin</label>
+                <select id="skin-select" class="arcade-select">
+                    <option value="neon" selected>⚡ Neon Plasma Orb</option>
+                    <option value="fire">🔥 Blazing Fireball</option>
+                    <option value="cyber">👁️ Cyber Eye</option>
+                    <option value="candy">🍬 Sweet Candy</option>
+                    <option value="gold">👑 Golden Sphere</option>
+                </select>
+            </div>
+
+            <div class="setting-pill">
+                <label for="diff-select">Spike Danger</label>
+                <select id="diff-select" class="arcade-select">
+                    <option value="normal" selected>Normal (Standard Spikes)</option>
+                    <option value="hard">Insane (More Nails + Fast)</option>
+                    <option value="easy">Casual (Fewer Nails)</option>
+                </select>
+            </div>
+        </section>
+
+        <!-- Active HUD Bar -->
+        <section class="game-hud">
+            <!-- P1 Score / Solo Score -->
+            <div class="hud-score-card p1-hud" id="p1-hud-card">
+                <div class="hud-label" id="p1-hud-label">SCORE</div>
+                <div class="hud-digit" id="current-score">0</div>
+                <div class="hud-sub" id="p1-best-sub">BEST: <span id="high-score-val">0</span></div>
+            </div>
+
+            <!-- Center Telemetry: Gems & Multiplier -->
+            <div class="hud-center-telemetry">
+                <div class="gem-counter-badge">
+                    <span class="gem-icon">💎</span>
+                    <span class="gem-val" id="gem-count">0</span>
+                </div>
+                <div class="multiplier-badge" id="multiplier-badge">
+                    <span id="multiplier-text">COMBO x1</span>
+                </div>
+            </div>
+
+            <!-- P2 Score (visible in 2-Player mode) -->
+            <div class="hud-score-card p2-hud" id="p2-hud-card" style="display: none;">
+                <div class="hud-label">P2 SCORE</div>
+                <div class="hud-digit" id="p2-score">0</div>
+                <div class="hud-sub">WINS: <span id="p2-wins-val">0</span></div>
+            </div>
+        </section>
+
+        <!-- Main Arcade Arena Canvas -->
+        <main class="canvas-arena-wrapper">
+            <canvas id="game-canvas" width="600" height="780"></canvas>
+
+            <!-- Start / Tap Prompt Overlay -->
+            <div class="arena-start-prompt" id="start-prompt">
+                <div class="pulse-tap-icon">👆</div>
+                <h2 id="prompt-main-text">TAP OR PRESS SPACE TO JUMP</h2>
+                <p id="prompt-sub-text">Bounce off walls, avoid the sharp nails!</p>
+            </div>
+
+            <!-- Blast Announcement Overlay -->
+            <div class="blast-overlay" id="blast-overlay">
+                <h2 class="blast-text">💥 BLASTED! 💥</h2>
+            </div>
+        </main>
+
+        <!-- Controls Helper Footer -->
+        <footer class="game-footer">
+            <div class="controls-legend" id="solo-legend">
+                <span class="control-tag">SINGLE PLAYER</span>
+                <span class="key-cap">SPACE</span> or <span class="key-cap">W</span> or <span class="key-cap">CLICK / TAP ANYWHERE</span> to Bounce Up!
+            </div>
+            <div class="controls-legend" id="pvp-legend" style="display: none;">
+                <div class="p1-controls">
+                    <span class="control-tag p1-tag">PLAYER 1 (CYAN)</span>
+                    <span class="key-cap">SPACE</span> / <span class="key-cap">W</span>
+                </div>
+                <span class="vs-divider">VS</span>
+                <div class="p2-controls">
+                    <span class="control-tag p2-tag">PLAYER 2 (ORANGE)</span>
+                    <span class="key-cap">UP ARROW</span> / <span class="key-cap">ENTER</span>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Game Over / Blast Modal -->
+    <div class="modal-backdrop" id="game-over-modal">
+        <div class="game-over-box">
+            <div class="blast-emoji-header">💣💥</div>
+            <h2 class="game-over-title">BALL BLASTED!</h2>
+            <p class="game-over-subtitle" id="game-over-sub">The nail punctured your ball into pieces!</p>
+
+            <div class="results-grid">
+                <div class="result-tile">
+                    <span class="tile-label">FINAL SCORE</span>
+                    <span class="tile-val highlight" id="modal-final-score">0</span>
+                </div>
+                <div class="result-tile">
+                    <span class="tile-label">BEST RECORD</span>
+                    <span class="tile-val" id="modal-best-score">0</span>
+                </div>
+                <div class="result-tile">
+                    <span class="tile-label">GEMS COLLECTED</span>
+                    <span class="tile-val" id="modal-gems-collected">0</span>
+                </div>
+                <div class="result-tile">
+                    <span class="tile-label">MEDAL EARNED</span>
+                    <span class="tile-val" id="modal-medal">🥉 Bronze</span>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button class="play-again-btn" id="btn-play-again">
+                    <span>⚡ PLAY AGAIN</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- How to Play / Rules Modal -->
+    <div class="modal-backdrop" id="rules-modal">
+        <div class="rules-box">
+            <div class="rules-header">
+                <h2>📖 HOW TO PLAY NAIL BLAST</h2>
+                <button class="close-btn" id="btn-close-rules">&times;</button>
+            </div>
+            <div class="rules-content">
+                <div class="rule-item">
+                    <span class="rule-icon">🏓</span>
+                    <div>
+                        <strong>Bouncing & Flapping:</strong>
+                        <p>Press <kbd>SPACE</kbd>, <kbd>W</kbd>, or tap the screen to give your ball an upward bounce. Gravity constantly pulls it downward.</p>
+                    </div>
+                </div>
+                <div class="rule-item">
+                    <span class="rule-icon">📌</span>
+                    <div>
+                        <strong>Sharp Nails & Spikes:</strong>
+                        <p>Nails sprout from the side walls, ceiling, and floor. Touching ANY nail will instantly <strong>BLAST</strong> your ball into pieces and end the game!</p>
+                    </div>
+                </div>
+                <div class="rule-item">
+                    <span class="rule-icon">⭐</span>
+                    <div>
+                        <strong>Scoring & Wall Bounces:</strong>
+                        <p>Every time you safely touch the left or right wall, you score +1 point, spikes switch positions, and new gems appear!</p>
+                    </div>
+                </div>
+                <div class="rule-item">
+                    <span class="rule-icon">👥</span>
+                    <div>
+                        <strong>2-Player Duel Mode:</strong>
+                        <p>Two balls enter the spiked pit! Player 1 uses <kbd>W</kbd>/<kbd>SPACE</kbd>, Player 2 uses <kbd>▲</kbd>/<kbd>ENTER</kbd>. Survive longer than your opponent!</p>
+                    </div>
+                </div>
+            </div>
+            <div class="rules-footer">
+                <button class="play-again-btn" id="btn-got-rules">GOT IT — LET'S BOUNCE!</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="bouncing-ball.js"></script>
+</body>
+</html>
